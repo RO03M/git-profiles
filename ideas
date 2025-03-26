@@ -1,0 +1,5 @@
+git-profiles use -> pega algum id/nome do perfil para usar no diretório atual
+git-profiles list -> lista todos os perfis
+git-profiles add -> prompts para adicionar o perfil
+git-profiles edit -> prompt para editar um perfil já existente
+git-profiles del -> prompt para remover um perfil
