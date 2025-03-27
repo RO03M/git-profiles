@@ -27,11 +27,10 @@ func ExecAddRoutine(defaultConfig config.Config) {
 		log.Fatalf("Failed to get the git account email %v\n", err)
 	}
 
-	absoluteSshPath, err := prompts.Text(prompts.TextParams{
-		Message:     "Write the path to the ssh credential",
-		Required:    false,
-		Placeholder: "~/.ssh/id_ed25519",
-	})
+	sshPath := GetSshPath(email)
+
+	// GetSshKey()
+	fmt.Println(sshPath)
 
 	if err != nil {
 		log.Fatalf("Failed to get the absolute ssh path %v\n", err)
