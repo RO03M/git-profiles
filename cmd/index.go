@@ -1,12 +1,23 @@
 package cmd
 
 import (
-	"fmt"
 	"git-profiles/cmd/config"
+	"os"
 )
 
 func App() {
 	configFile := config.FindOrCreateConfigFile()
 
-	fmt.Println(configFile)
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "add":
+			ExecAddRoutine(configFile)
+		case "select":
+		case "switch":
+		case "sp":
+		case "su":
+			SwitchProfileRoutine(configFile)
+		}
+	}
+
 }

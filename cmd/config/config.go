@@ -10,6 +10,7 @@ import (
 const CONFIG_FILE_NAME = ".git-profiles-config.json"
 
 type Profile struct {
+	ProfileName     string `json:"profileName"`
 	Name            string `json:"name"`
 	Email           string `json:"email"`
 	AbsoluteSshPath string `json:"absoluteSshPath"`
@@ -17,6 +18,22 @@ type Profile struct {
 
 type Config struct {
 	Profiles []Profile `json:"profiles"`
+}
+
+func (config Config) Save() {
+	var jsonConfig, err = json.Marshal(config)
+
+	if err != nil {
+		log.Fatalf("Failed to create a config file %v\n", err)
+		panic(err)
+	}
+
+	err = os.WriteFile(GetConfigPath(), jsonConfig, 0644)
+
+	if err != nil {
+		log.Fatalf("Failed to create config file %v\n", err)
+		panic(err)
+	}
 }
 
 func GetConfigPath() string {
@@ -56,7 +73,7 @@ func FindConfigFile() (Config, error) {
 
 	var config Config
 
-	err = json.Unmarshal(file, config)
+	err = json.Unmarshal(file, &config)
 
 	if err != nil {
 		return Config{}, err
