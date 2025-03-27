@@ -5,11 +5,21 @@ import (
 	"git-profiles/cmd/config"
 	"git-profiles/cmd/utils"
 	"log"
+	"os"
 
 	"github.com/orochaa/go-clack/prompts"
+	"gopkg.in/ini.v1"
 )
 
 func SwitchProfileRoutine(configFile config.Config) {
+	home, err := os.UserHomeDir()
+
+	cfg, err := ini.Load(home + "/.gitconfig")
+	if err != nil {
+		panic(err)
+	}
+
+	// fmt.Println(cfg.Section("user").Key("email"))
 	profiles := utils.Map(configFile.Profiles, func(item config.Profile, key int) *prompts.SelectOption[config.Profile] {
 		return &prompts.SelectOption[config.Profile]{
 			Label: item.ProfileName,
@@ -33,4 +43,9 @@ func SwitchProfileRoutine(configFile config.Config) {
 	}
 
 	fmt.Println(targetProfile)
+	cfg.Section("user").Key("email").SetValue(targetProfile.Email)
+	cfg.Section("user").Key("name").SetValue(targetProfile.Name)
+	cfg.Section("core").Key("sshCommand").SetValue(fmt.Sprintf("ssh -i %s", targetProfile.AbsoluteSshPath))
+
+	cfg.SaveTo(home + "/.gitconfig")
 }
