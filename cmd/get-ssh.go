@@ -4,6 +4,7 @@ import (
 	"crypto/ed25519"
 	"encoding/pem"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -19,7 +20,7 @@ func SanitizeSshFileName(filename string) string {
 	return filename
 }
 
-func CreateNewSshFile(email string) {
+func CreateNewSshFile(email string) (string, string) {
 	pubKey, privKey, _ := ed25519.GenerateKey(nil)
 
 	pemKey := &pem.Block{
@@ -31,23 +32,43 @@ func CreateNewSshFile(email string) {
 	privateKey := pem.EncodeToMemory(pemKey)
 	authorizedKey := ssh.MarshalAuthorizedKey(publicKey)
 
-	fmt.Println(string(privateKey), string(authorizedKey))
-
 	homeDir, _ := os.UserHomeDir()
 
-	path := fmt.Sprintf("%s/.ssh/%s", homeDir, SanitizeSshFileName(email))
+	filename := SanitizeSshFileName(email)
 
-	os.WriteFile(path, []byte(string(authorizedKey)+email), 0644)
+	err := os.MkdirAll(fmt.Sprintf("%s/.ssh/gitprofiles/", homeDir), os.ModePerm)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	publicKeyPath := fmt.Sprintf("%s/.ssh/gitprofiles/%s.pub", homeDir, filename)
+	privateKeyPath := fmt.Sprintf("%s/.ssh/gitprofiles/%s", homeDir, filename)
+
+	publicKeyContent := fmt.Sprintf("%s %s", strings.ReplaceAll(string(authorizedKey), "\n", " "), email)
+
+	os.WriteFile(publicKeyPath, []byte(publicKeyContent), 0644)
+	os.WriteFile(privateKeyPath, []byte(privateKey), 0644)
+
+	return publicKeyPath, privateKeyPath
 }
 
-func GetSshPath(email string) string {
+func GetSshPath(email string) (string, bool) {
 	shouldGenerateSsh, _ := prompts.Confirm(prompts.ConfirmParams{
 		Message: "Do you wish to generate a ssh key pair?",
 	})
 
 	if shouldGenerateSsh {
+		publicPath, _ := CreateNewSshFile(email)
+		prompts.Info(fmt.Sprintf("Created the public ssh file at\n%s", publicPath))
 
+		return publicPath, shouldGenerateSsh
 	}
 
-	return ""
+	absoluteSshPath, _ := prompts.Path(prompts.PathParams{
+		Message:  "Write the path to the ssh credential",
+		Required: true,
+	})
+
+	return absoluteSshPath, shouldGenerateSsh
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"git-profiles/cmd/config"
 	"log"
+	"os"
 
 	"github.com/orochaa/go-clack/prompts"
 )
@@ -27,10 +28,7 @@ func ExecAddRoutine(defaultConfig config.Config) {
 		log.Fatalf("Failed to get the git account email %v\n", err)
 	}
 
-	sshPath := GetSshPath(email)
-
-	// GetSshKey()
-	fmt.Println(sshPath)
+	sshPath, generatedSshKey := GetSshPath(email)
 
 	if err != nil {
 		log.Fatalf("Failed to get the absolute ssh path %v\n", err)
@@ -50,10 +48,32 @@ func ExecAddRoutine(defaultConfig config.Config) {
 		ProfileName:     profileName,
 		Name:            name,
 		Email:           email,
-		AbsoluteSshPath: absoluteSshPath,
+		AbsoluteSshPath: sshPath,
 	}
 
 	defaultConfig.Profiles = append(defaultConfig.Profiles, profile)
 
 	defaultConfig.Save()
+
+	if generatedSshKey {
+		pubKey, _ := os.ReadFile(sshPath)
+		prompts.Note(string(pubKey), prompts.NoteOptions{
+			Title: "Paste the following key into your git provider",
+		})
+	}
+
+	prompts.Select(prompts.SelectParams[string]{
+		Message: "Did you paste it into the git provider?",
+		Options: []*prompts.SelectOption[string]{
+			{
+				Label: "Yes",
+			},
+			{
+				Label: "I'll do it later, trust me :)",
+			},
+		},
+	})
+
+	prompts.Info("New Profile created! Use git-profiles su and choose it to use")
+
 }
