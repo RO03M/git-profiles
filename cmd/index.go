@@ -12,13 +12,12 @@ func App() {
 		switch os.Args[1] {
 		case "add":
 			ExecAddRoutine(configFile)
-		case "select":
-		case "switch":
-		case "sp":
-		case "su":
+		case "su", "sp", "select", "switch":
 			SwitchProfileRoutine(configFile)
 		case "list":
 			ListProfiles(configFile)
+		case "delete", "del":
+			DeleteProfileRoutine(configFile)
 		}
 	}
 
