@@ -12,7 +12,7 @@ import (
 )
 
 func SwitchProfileRoutine(configFile config.Config) {
-	home, err := os.UserHomeDir()
+	home, _ := os.UserHomeDir()
 
 	cfg, err := ini.Load(home + "/.gitconfig")
 	if err != nil {

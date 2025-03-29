@@ -17,6 +17,8 @@ func App() {
 		case "sp":
 		case "su":
 			SwitchProfileRoutine(configFile)
+		case "list":
+			ListProfiles(configFile)
 		}
 	}
 
