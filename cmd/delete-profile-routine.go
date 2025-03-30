@@ -11,6 +11,7 @@ import (
 
 func DeleteProfileRoutine(configFile config.Config) {
 	var deleteParam string
+	var err error
 
 	if len(os.Args) >= 3 {
 		deleteParam = os.Args[2]
@@ -23,10 +24,20 @@ func DeleteProfileRoutine(configFile config.Config) {
 			}
 		})
 
-		deleteParam, _ = prompts.Select(prompts.SelectParams[string]{
+		profiles = append(profiles, &prompts.SelectOption[string]{
+			Label: "Cancel",
+			Value: "-1",
+		})
+
+		deleteParam, err = prompts.Select(prompts.SelectParams[string]{
 			Message: "Choose a profile to be deleted",
 			Options: profiles,
 		})
+	}
+
+	if deleteParam == "-1" || prompts.IsCancel(err) {
+		fmt.Println("Canceled deletion operation")
+		return
 	}
 
 	profiles := utils.Filter(configFile.Profiles, func(profile config.Profile, _ int) bool {
