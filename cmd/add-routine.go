@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/google/uuid"
 	"github.com/orochaa/go-clack/prompts"
 )
 
@@ -45,6 +46,7 @@ func ExecAddRoutine(defaultConfig config.Config) {
 	}
 
 	var profile = config.Profile{
+		Id:              uuid.New(),
 		ProfileName:     profileName,
 		Name:            name,
 		Email:           email,

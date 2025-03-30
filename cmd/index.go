@@ -12,6 +12,8 @@ func App() {
 		switch os.Args[1] {
 		case "add":
 			ExecAddRoutine(configFile)
+		case "edit":
+			ExecEditRoutine(configFile)
 		case "su", "sp", "select", "switch":
 			SwitchProfileRoutine(configFile)
 		case "list":

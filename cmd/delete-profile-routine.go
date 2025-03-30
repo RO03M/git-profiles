@@ -40,6 +40,14 @@ func DeleteProfileRoutine(configFile config.Config) {
 		return
 	}
 
+	deleteConfirmation, err := prompts.Confirm(prompts.ConfirmParams{
+		Message: fmt.Sprintf("Are you sure you want to delete %s", deleteParam),
+	})
+
+	if err != nil || prompts.IsCancel(err) || !deleteConfirmation {
+		prompts.Error("Canceled the delete operation!")
+	}
+
 	profiles := utils.Filter(configFile.Profiles, func(profile config.Profile, _ int) bool {
 		return !(profile.ProfileName == deleteParam || profile.Name == deleteParam || profile.Email == deleteParam)
 	})

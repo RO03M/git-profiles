@@ -21,10 +21,18 @@ func SwitchProfileRoutine(configFile config.Config) {
 
 	// fmt.Println(cfg.Section("user").Key("email"))
 	profiles := utils.Map(configFile.Profiles, func(item config.Profile, key int) *prompts.SelectOption[config.Profile] {
+		var hint string
+
+		if configFile.ActiveProfile == item.Id {
+			hint = fmt.Sprintf("%s %s %s", utils.TextColor("Active", utils.Green), item.Name, item.Email)
+		} else {
+			hint = fmt.Sprintf("%s %s", item.Name, item.Email)
+		}
+
 		return &prompts.SelectOption[config.Profile]{
 			Label: item.ProfileName,
 			Value: item,
-			Hint:  fmt.Sprintf("%s %s", item.Name, item.Email),
+			Hint:  hint,
 		}
 	})
 
@@ -34,6 +42,7 @@ func SwitchProfileRoutine(configFile config.Config) {
 	}
 
 	targetProfile, err := prompts.Select(prompts.SelectParams[config.Profile]{
+		Message: "Select a profile to use",
 		Options: profiles,
 	})
 
@@ -42,7 +51,9 @@ func SwitchProfileRoutine(configFile config.Config) {
 		return
 	}
 
-	fmt.Println(targetProfile)
+	configFile.ActiveProfile = targetProfile.Id
+	configFile.Save()
+
 	cfg.Section("user").Key("email").SetValue(targetProfile.Email)
 	cfg.Section("user").Key("name").SetValue(targetProfile.Name)
 	cfg.Section("core").Key("sshCommand").SetValue(fmt.Sprintf("ssh -i %s", targetProfile.AbsoluteSshPath))

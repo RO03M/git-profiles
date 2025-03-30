@@ -5,19 +5,23 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/google/uuid"
 )
 
 const CONFIG_FILE_NAME = ".git-profiles-config.json"
 
 type Profile struct {
-	ProfileName     string `json:"profileName"`
-	Name            string `json:"name"`
-	Email           string `json:"email"`
-	AbsoluteSshPath string `json:"absoluteSshPath"`
+	Id              uuid.UUID `json:"id"`
+	ProfileName     string    `json:"profileName"`
+	Name            string    `json:"name"`
+	Email           string    `json:"email"`
+	AbsoluteSshPath string    `json:"absoluteSshPath"`
 }
 
 type Config struct {
-	Profiles []Profile `json:"profiles"`
+	ActiveProfile uuid.UUID `json:"activeProfile"`
+	Profiles      []Profile `json:"profiles"`
 }
 
 func (config Config) Save() {
