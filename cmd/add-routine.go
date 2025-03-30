@@ -60,19 +60,19 @@ func ExecAddRoutine(defaultConfig config.Config) {
 		prompts.Note(string(pubKey), prompts.NoteOptions{
 			Title: "Paste the following key into your git provider",
 		})
-	}
 
-	prompts.Select(prompts.SelectParams[string]{
-		Message: "Did you paste it into the git provider?",
-		Options: []*prompts.SelectOption[string]{
-			{
-				Label: "Yes",
+		prompts.Select(prompts.SelectParams[string]{
+			Message: "Did you paste it into the git provider?",
+			Options: []*prompts.SelectOption[string]{
+				{
+					Label: "Yes",
+				},
+				{
+					Label: "I'll do it later, trust me :)",
+				},
 			},
-			{
-				Label: "I'll do it later, trust me :)",
-			},
-		},
-	})
+		})
+	}
 
 	prompts.Info("New Profile created! Use git-profiles su and choose it to use")
 
