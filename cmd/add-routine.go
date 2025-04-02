@@ -29,7 +29,7 @@ func ExecAddRoutine(defaultConfig config.Config) {
 		log.Fatalf("Failed to get the git account email %v\n", err)
 	}
 
-	sshPath, generatedSshKey := GetSshPath(email)
+	publicKeyPath, privateKeyPath, generatedSshKey := GetSshPath(email)
 
 	if err != nil {
 		log.Fatalf("Failed to get the absolute ssh path %v\n", err)
@@ -50,7 +50,7 @@ func ExecAddRoutine(defaultConfig config.Config) {
 		ProfileName:     profileName,
 		Name:            name,
 		Email:           email,
-		AbsoluteSshPath: sshPath,
+		AbsoluteSshPath: privateKeyPath,
 	}
 
 	defaultConfig.Profiles = append(defaultConfig.Profiles, profile)
@@ -58,7 +58,7 @@ func ExecAddRoutine(defaultConfig config.Config) {
 	defaultConfig.Save()
 
 	if generatedSshKey {
-		pubKey, _ := os.ReadFile(sshPath)
+		pubKey, _ := os.ReadFile(publicKeyPath)
 		prompts.Note(string(pubKey), prompts.NoteOptions{
 			Title: "Paste the following key into your git provider",
 		})

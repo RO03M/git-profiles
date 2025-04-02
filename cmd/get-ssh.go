@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/mikesmitty/edkey"
 	"github.com/orochaa/go-clack/prompts"
 	"golang.org/x/crypto/ssh"
@@ -22,6 +23,7 @@ func SanitizeSshFileName(filename string) string {
 
 func CreateNewSshFile(email string) (string, string) {
 	pubKey, privKey, _ := ed25519.GenerateKey(nil)
+	// privKey = ed25519.Sign(privKey, []byte("teste"))
 
 	pemKey := &pem.Block{
 		Type:  "OPENSSH PRIVATE KEY",
@@ -34,7 +36,7 @@ func CreateNewSshFile(email string) (string, string) {
 
 	homeDir, _ := os.UserHomeDir()
 
-	filename := SanitizeSshFileName(email)
+	filename := fmt.Sprintf("%s%s", SanitizeSshFileName(email), uuid.New())
 
 	err := os.MkdirAll(fmt.Sprintf("%s/.ssh/gitprofiles/", homeDir), os.ModePerm)
 
@@ -45,24 +47,24 @@ func CreateNewSshFile(email string) (string, string) {
 	publicKeyPath := fmt.Sprintf("%s/.ssh/gitprofiles/%s.pub", homeDir, filename)
 	privateKeyPath := fmt.Sprintf("%s/.ssh/gitprofiles/%s", homeDir, filename)
 
-	publicKeyContent := fmt.Sprintf("%s %s", strings.ReplaceAll(string(authorizedKey), "\n", " "), email)
+	publicKeyContent := fmt.Sprintf("%s %s", strings.ReplaceAll(string(authorizedKey), "\n", ""), email)
 
-	os.WriteFile(publicKeyPath, []byte(publicKeyContent), 0644)
-	os.WriteFile(privateKeyPath, []byte(privateKey), 0644)
+	os.WriteFile(publicKeyPath, []byte(publicKeyContent), 0600)
+	os.WriteFile(privateKeyPath, []byte(privateKey), 0600)
 
 	return publicKeyPath, privateKeyPath
 }
 
-func GetSshPath(email string) (string, bool) {
+func GetSshPath(email string) (string, string, bool) {
 	shouldGenerateSsh, _ := prompts.Confirm(prompts.ConfirmParams{
 		Message: "Do you wish to generate a ssh key pair?",
 	})
 
 	if shouldGenerateSsh {
-		publicPath, _ := CreateNewSshFile(email)
+		publicPath, privatePath := CreateNewSshFile(email)
 		prompts.Info(fmt.Sprintf("Created the public ssh file at\n%s", publicPath))
 
-		return publicPath, shouldGenerateSsh
+		return publicPath, privatePath, shouldGenerateSsh
 	}
 
 	absoluteSshPath, _ := prompts.Path(prompts.PathParams{
@@ -70,5 +72,5 @@ func GetSshPath(email string) (string, bool) {
 		Required: true,
 	})
 
-	return absoluteSshPath, shouldGenerateSsh
+	return absoluteSshPath, "", shouldGenerateSsh
 }
