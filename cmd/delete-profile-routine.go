@@ -19,7 +19,7 @@ func DeleteProfileRoutine(configFile config.Config) {
 		profiles := utils.Map(configFile.Profiles, func(item config.Profile, key int) *prompts.SelectOption[string] {
 			return &prompts.SelectOption[string]{
 				Label: item.ProfileName,
-				Value: item.Email,
+				Value: item.Id.String(),
 				Hint:  fmt.Sprintf("%s %s", item.Name, item.Email),
 			}
 		})
@@ -40,16 +40,22 @@ func DeleteProfileRoutine(configFile config.Config) {
 		return
 	}
 
+	profileToBeDeleted := utils.Find(configFile.Profiles, func(profile config.Profile, _ int) bool {
+		return profile.Id.String() == deleteParam || profile.ProfileName == deleteParam || profile.Name == deleteParam || profile.Email == deleteParam
+	})
+
 	deleteConfirmation, err := prompts.Confirm(prompts.ConfirmParams{
-		Message: fmt.Sprintf("Are you sure you want to delete %s", deleteParam),
+		Message: fmt.Sprintf("Are you sure you want to delete the profile %s (email: %s, name: %s)", profileToBeDeleted.ProfileName, profileToBeDeleted.Email, profileToBeDeleted.Name),
 	})
 
 	if err != nil || prompts.IsCancel(err) || !deleteConfirmation {
 		prompts.Error("Canceled the delete operation!")
+
+		return
 	}
 
 	profiles := utils.Filter(configFile.Profiles, func(profile config.Profile, _ int) bool {
-		return !(profile.ProfileName == deleteParam || profile.Name == deleteParam || profile.Email == deleteParam)
+		return profile.Id != profileToBeDeleted.Id
 	})
 
 	configFile.Profiles = profiles
