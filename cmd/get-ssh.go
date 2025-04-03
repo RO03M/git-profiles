@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/mikesmitty/edkey"
 	"github.com/orochaa/go-clack/prompts"
 	"golang.org/x/crypto/ssh"
 )
@@ -24,14 +23,13 @@ func SanitizeSshFileName(filename string) string {
 func CreateNewSshFile(email string) (string, string) {
 	pubKey, privKey, _ := ed25519.GenerateKey(nil)
 	// privKey = ed25519.Sign(privKey, []byte("teste"))
-
-	pemKey := &pem.Block{
-		Type:  "OPENSSH PRIVATE KEY",
-		Bytes: edkey.MarshalED25519PrivateKey(privKey),
-	}
+	// pemKey := &pem.Block{
+	// 	Type:  "OPENSSH PRIVATE KEY",
+	// 	Bytes: edkey.MarshalED25519PrivateKey(privKey),
+	// }
 
 	publicKey, _ := ssh.NewPublicKey(pubKey)
-	privateKey := pem.EncodeToMemory(pemKey)
+	// privateKey := pem.EncodeToMemory(pemKey)
 	authorizedKey := ssh.MarshalAuthorizedKey(publicKey)
 
 	homeDir, _ := os.UserHomeDir()
@@ -49,8 +47,17 @@ func CreateNewSshFile(email string) (string, string) {
 
 	publicKeyContent := fmt.Sprintf("%s %s", strings.ReplaceAll(string(authorizedKey), "\n", ""), email)
 
+	// signer, _ := ssh.NewSignerFromKey(privKey)
+	encryptedPEM, err := ssh.MarshalPrivateKeyWithPassphrase(privKey, "aes256-ctr", []byte("vsauce"))
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(encryptedPEM)
+
 	os.WriteFile(publicKeyPath, []byte(publicKeyContent), 0600)
-	os.WriteFile(privateKeyPath, []byte(privateKey), 0600)
+	os.WriteFile(privateKeyPath, []byte(pem.EncodeToMemory(encryptedPEM)), 0600)
 
 	return publicKeyPath, privateKeyPath
 }
