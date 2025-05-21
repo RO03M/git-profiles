@@ -48,16 +48,19 @@ func CreateNewSshFile(email string) (string, string) {
 	publicKeyContent := fmt.Sprintf("%s %s", strings.ReplaceAll(string(authorizedKey), "\n", ""), email)
 
 	// signer, _ := ssh.NewSignerFromKey(privKey)
-	encryptedPEM, err := ssh.MarshalPrivateKeyWithPassphrase(privKey, "aes256-ctr", []byte("vsauce"))
+	encryptedPEM, err := ssh.MarshalPrivateKeyWithPassphrase(privKey, "aes256-ctr", []byte(""))
+
+	foda, err := ssh.MarshalPrivateKey(privKey, "aes256-ctr")
 
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println(encryptedPEM)
+	fmt.Println(foda)
 
 	os.WriteFile(publicKeyPath, []byte(publicKeyContent), 0600)
-	os.WriteFile(privateKeyPath, []byte(pem.EncodeToMemory(encryptedPEM)), 0600)
+	os.WriteFile(privateKeyPath, []byte(pem.EncodeToMemory(foda)), 0600)
 
 	return publicKeyPath, privateKeyPath
 }
