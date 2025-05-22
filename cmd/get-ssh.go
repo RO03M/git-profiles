@@ -20,16 +20,10 @@ func SanitizeSshFileName(filename string) string {
 	return filename
 }
 
-func CreateNewSshFile(email string) (string, string) {
+func CreateNewSshFile(email string, password string) (string, string) {
 	pubKey, privKey, _ := ed25519.GenerateKey(nil)
-	// privKey = ed25519.Sign(privKey, []byte("teste"))
-	// pemKey := &pem.Block{
-	// 	Type:  "OPENSSH PRIVATE KEY",
-	// 	Bytes: edkey.MarshalED25519PrivateKey(privKey),
-	// }
 
 	publicKey, _ := ssh.NewPublicKey(pubKey)
-	// privateKey := pem.EncodeToMemory(pemKey)
 	authorizedKey := ssh.MarshalAuthorizedKey(publicKey)
 
 	homeDir, _ := os.UserHomeDir()
@@ -39,7 +33,7 @@ func CreateNewSshFile(email string) (string, string) {
 	err := os.MkdirAll(fmt.Sprintf("%s/.ssh/gitprofiles/", homeDir), os.ModePerm)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to create the default dir", err)
 	}
 
 	publicKeyPath := fmt.Sprintf("%s/.ssh/gitprofiles/%s.pub", homeDir, filename)
@@ -47,20 +41,20 @@ func CreateNewSshFile(email string) (string, string) {
 
 	publicKeyContent := fmt.Sprintf("%s %s", strings.ReplaceAll(string(authorizedKey), "\n", ""), email)
 
-	// signer, _ := ssh.NewSignerFromKey(privKey)
-	encryptedPEM, err := ssh.MarshalPrivateKeyWithPassphrase(privKey, "aes256-ctr", []byte(""))
+	var privateKeyBlock *pem.Block
 
-	foda, err := ssh.MarshalPrivateKey(privKey, "aes256-ctr")
-
-	if err != nil {
-		panic(err)
+	if password == "" {
+		privateKeyBlock, err = ssh.MarshalPrivateKey(privKey, "aes256-ctr")
+	} else {
+		privateKeyBlock, err = ssh.MarshalPrivateKeyWithPassphrase(privKey, "aes256-ctr", []byte(password))
 	}
 
-	fmt.Println(encryptedPEM)
-	fmt.Println(foda)
+	if err != nil {
+		log.Fatal("Failed to generate the private key", err)
+	}
 
 	os.WriteFile(publicKeyPath, []byte(publicKeyContent), 0600)
-	os.WriteFile(privateKeyPath, []byte(pem.EncodeToMemory(foda)), 0600)
+	os.WriteFile(privateKeyPath, []byte(pem.EncodeToMemory(privateKeyBlock)), 0600)
 
 	return publicKeyPath, privateKeyPath
 }
@@ -70,8 +64,12 @@ func GetSshPath(email string) (string, string, bool) {
 		Message: "Do you wish to generate a ssh key pair?",
 	})
 
+	password, _ := prompts.Password(prompts.PasswordParams{
+		Message: "Enter your password (Empty for no password)",
+	})
+
 	if shouldGenerateSsh {
-		publicPath, privatePath := CreateNewSshFile(email)
+		publicPath, privatePath := CreateNewSshFile(email, password)
 		prompts.Info(fmt.Sprintf("Created the public ssh file at\n%s", publicPath))
 
 		return publicPath, privatePath, shouldGenerateSsh
