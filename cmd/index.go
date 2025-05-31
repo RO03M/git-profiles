@@ -1,9 +1,26 @@
 package cmd
 
 import (
+	"fmt"
 	"git-profiles/cmd/config"
 	"os"
 )
+
+func PrintHelp() {
+	commands := map[string]string{
+		"add":                    "create a new profile",
+		"edit":                   "edit an existing profile",
+		"su, sp, select, switch": "list all profiles and select one to use",
+		"list":                   "list all profiles",
+		"delete, del":            "delete a selected profile",
+	}
+
+	fmt.Println("Usage: git-profiles <option>")
+	fmt.Println("\nOptions:")
+	for cmd, desc := range commands {
+		fmt.Printf("  %-30s %s\n", cmd, desc)
+	}
+}
 
 func App() {
 	configFile := config.FindOrCreateConfigFile()
@@ -20,7 +37,11 @@ func App() {
 			ListProfiles(configFile)
 		case "delete", "del":
 			DeleteProfileRoutine(configFile)
+		default:
+			PrintHelp()
 		}
+	} else {
+		PrintHelp()
 	}
 
 }
