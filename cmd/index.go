@@ -13,6 +13,7 @@ func PrintHelp() {
 		"su, sp, select, switch": "list all profiles and select one to use",
 		"list":                   "list all profiles",
 		"delete, del":            "delete a selected profile",
+		"current":                "show current active git account",
 	}
 
 	fmt.Println("Usage: git-profiles <option>")
@@ -33,12 +34,17 @@ func App() {
 			ExecEditRoutine(configFile)
 		case "su", "sp", "select", "switch":
 			SwitchProfileRoutine(configFile)
-		case "list":
+		case "list", "ls":
 			ListProfiles(configFile)
 		case "delete", "del":
 			DeleteProfileRoutine(configFile)
+		case "current":
+			GetCurrentUser()
+		case "help", "-h", "--help":
+			PrintHelp()
 		default:
 			PrintHelp()
+			fmt.Printf("\n\n\"%s\" is an invalid command.\n", os.Args[1])
 		}
 	} else {
 		PrintHelp()
