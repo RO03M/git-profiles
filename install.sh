@@ -1,4 +1,4 @@
-wget https://github.com/RO03M/git-profiles/releases/download/0.0.3/git-profiles_0.0.3_linux_386.tar.gz -O /tmp/gp.tar.gz -q
+wget https://github.com/RO03M/git-profiles/releases/download/0.0.3/git-profiles_0.0.3_linux_386.tar.gz -O /tmp/gp.tar.gz -q --show-progress
 
 sudo tar -xzf /tmp/gp.tar.gz -C /bin
 
